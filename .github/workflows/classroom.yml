@@ -1,0 +1,60 @@
+name: Autograding Tests
+'on':
+- push
+- repository_dispatch
+permissions:
+  checks: write
+  actions: read
+  contents: read
+jobs:
+  run-autograding-tests:
+    runs-on: ubuntu-latest
+    if: github.actor != 'github-classroom[bot]'
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    - name: Dockerfile exposes port 3000
+      id: dockerfile-exposes-port-3000
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: Dockerfile exposes port 3000
+        setup-command: ''
+        command: grep -q "EXPOSE 3000" Dockerfile
+        timeout: 2
+        max-score: 1
+    - name: Build the Docker image
+      id: build-the-docker-image
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: Build the Docker image
+        setup-command: ''
+        command: docker build -t simple-node-app .
+        timeout: 2
+        max-score: 1
+    - name: Container runs successfully
+      id: container-runs-successfully
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: Container runs successfully
+        setup-command: ''
+        command: docker ps | grep simple-node-app
+        timeout: 2
+        max-score: 1
+    - name: Check HTTP response
+      id: check-http-response
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: Check HTTP response
+        setup-command: ''
+        command: curl -s http://localhost:3000 | grep "Welcome to Docker"
+        timeout: 2
+        max-score: 2
+    - name: Autograding Reporter
+      uses: classroom-resources/autograding-grading-reporter@v1
+      env:
+        DOCKERFILE-EXPOSES-PORT-3000_RESULTS: "${{steps.dockerfile-exposes-port-3000.outputs.result}}"
+        BUILD-THE-DOCKER-IMAGE_RESULTS: "${{steps.build-the-docker-image.outputs.result}}"
+        CONTAINER-RUNS-SUCCESSFULLY_RESULTS: "${{steps.container-runs-successfully.outputs.result}}"
+        CHECK-HTTP-RESPONSE_RESULTS: "${{steps.check-http-response.outputs.result}}"
+      with:
+        runners: dockerfile-exposes-port-3000,build-the-docker-image,container-runs-successfully,check-http-response
