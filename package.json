@@ -1,0 +1,12 @@
+{
+    "name": "docker-introduction",
+    "version": "1.0.0",
+    "description": "A simple Node.js web server for Docker introduction",
+    "main": "src/server.js",
+    "scripts": {
+        "start": "node src/server.js"
+    },
+    "dependencies": {
+        "express": "^4.17.1"
+    }
+}
